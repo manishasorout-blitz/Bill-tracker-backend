@@ -7,12 +7,12 @@ const router=express.Router();
 //functions 
 const getAllBills=async(req,res)=>{   
  console.log(req.headers)
- const {page=1,pageSize=5}=req.query;
+ const {page=1,pageSize=5,search=''}=req.query;
 try {
     let userId = req.userId;  
     console.log("user id",userId);
-    let {bills,total,bool}= await allbills({userId,page,pageSize});
-     console.log(bills,userId);
+    let {bills,total,bool}= await allbills({userId,page,pageSize,search});
+     console.log(bills,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.");
     res.send({bills,"total":total,"totalpages":bool});
 } catch (error) {
     console.log(error)
@@ -23,8 +23,7 @@ try {
 
 const createBills=async(req,res)=>{  
   const {title,amount,expense_date}=req.body;
-  const user_id = req.userId;
-   
+  const user_id = req.userId;   
     try {
         const posts=await createbills({title,amount,expense_date,user_id});
         res.send({posts});

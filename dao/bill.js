@@ -2,16 +2,21 @@ const { Bills } =require( "../models/expenses.js");
 const { UpdatedBill } = require("../models/update.js");
 
 //all queries
-const allbills=async({userId,page,pageSize})=>{
+const allbills=async({userId,page,pageSize,search})=>{
      let limit=Number(pageSize);
      let skip=Number(limit)*Number((page)-1);
-     
- const total=await Bills.find().count();
+    
+ const total=await Bills.find({
+    title:search
+ }).count();
+ console.log("serachhhhhhhhhhhhhhhhhhhh",search)
  const bool=Math.ceil(total/limit);
- console.log("boool>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",bool);
+//  console.log("boool>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",bool);
 
 console.log(">>>>>>>>>>>>>>> user Id: ", limit);
-const bills= await Bills.find({user_id: userId, is_active: true }).skip(skip).limit(limit);
+const bills= await Bills.find({user_id: userId, is_active: true,title:search}).skip(skip).limit(limit);
+console.log(search);
+console.log(bills,"billssssssssssssssssssssssssssssssssssssssssssssss");
  return {bills,total,bool};
 }    
 const createbills=async(data)=>{

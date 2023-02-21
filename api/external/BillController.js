@@ -1,102 +1,100 @@
-const express=require("express");
-const {allbills, createbills, deletebills, updatebills, getbyid, historyOfBill}=require("../../dao/bill.js");
-const { Bills } = require("../../models/expenses.js");
-const { UpdatedBill } = require("../../models/update.js");
-const {authMiddleware} = require("./middleware");
-const router=express.Router();
-//functions 
-const getAllBills=async(req,res)=>{   
- console.log(req.headers)
- const {page=1,pageSize=5,search=''}=req.query;
-try {
-    let userId = req.userId;  
-    console.log("user id",userId);
-    let {bills,total,bool}= await allbills({userId,page,pageSize,search});
-     console.log(bills,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.");
-    res.send({bills,"total":total,"totalpages":bool});
-} catch (error) {
-    console.log(error)
-    res.status(404).send({message:"there is some error in getting all the bills"})
-}
-}
-//create bills     
+const express = require("express");
+const {
+  createNewBill,
+  deleteBill,
+  updateBill,
+  getbyid,
+  getAllBills,
+} = require("../../dao/bill.js");
+const { authMiddleware } = require("./middleware");
+const router = express.Router();
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ */
 
-const createBills=async(req,res)=>{  
-  const {title,amount,expense_date}=req.body;
-  const user_id = req.userId;   
-    try {
-        const posts=await createbills({title,amount,expense_date,user_id});
-        res.send({posts});
-    } catch (error) {
-        res.status(404).send({message:"error in creating a bill"})
-    }
-}
+//get all bills of users
+const getAllBillsOfUsers = async (req, res) => {
+  const { Page = 1, PageSize = 5, search = "", startDate, endDate } = req.query;
+  try {
+    let userId = req.userId;
+    let { data, count } = await getAllBills({
+      userId,
+      Page,
+      PageSize,
+      search,
+      startDate,
+      endDate,
+    });
+    res.send({ data, total: count });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(404)
+      .send({ message: "there is some error in getting all the bills" });
+  }
+};
 
-const deletebill=async(req,res)=>{
-    const id=req.params.id;
-    const body=req.body;      
-    try {
-        const bill= await deletebills({_id:id},body);
-        res.send("deleted");
-    } catch (error) {
-        console.log(error);
-        res.status(404).send({message:"error in the deleting "})
-    }   
-}
+//create bills
+const createNewBillOfUser = async (req, res) => {
+  const { title, amount, expense_date } = req.body;
+  const user_id = req.userId;
+  try {
+    const posts = await createNewBill({ title, amount, expense_date, user_id });
+    res.send({ posts });
+  } catch (error) {
+    res.status(404).send({ message: "error in creating a bill" });
+    throw new Error("something went wrong in creating a bill");
+  }
+};
 
+//delete a single bill of user
+const deleteBillOfUser = async (req, res) => {
+  const id = req.params.id;
+  const body = req.body;
+  try {
+    await deleteBill({ _id: id }, body);
+    res.status(200).send({ message: "bill deleted succesfully" });
+  } catch (error) {
+    console.log(error);
+    throw new Error("something went wrong in deleting the bill");
+  }
+};
 
-const editbill=async(req,res)=>{
-    console.log("inside the edit blog");
-    const id=req.params.id;
-    const body=req.body;
-    try {
-        const updatedBill =  await Bills.findByIdAndUpdate(id, body) ;      
-           console.log(body,"HRY THRE")
-     
-        const history= new UpdatedBill({updated_title:body.title, updated_amount:body.amount, updated_expense_Date:body.expense_date});
-       await history.save();
-        console.log(updatedBill ,"line 51");
-   await updatedBill.save();      
-        res.send(updatedBill);   
-          
-    } catch (error) {
-        console.log(error);
-       res.status(404).send({message:"error in updating"})
-    }
-}
-const getById=async(req,res)=>{
-    const id=req.params.id;   
-    try {
-        const singlebill=await getbyid(id)
-        res.send(singlebill);
-    } catch (error) {
-        res.send("error")
-    }
-}
+//edit user bill
+const editUserBill = async (req, res) => {
+  const id = req.params.id;
+  const body = req.body;
+  try {
+    const updatedBill = await updateBill({ id , body});
+    res.send(updatedBill);
+  } catch (error) {
+    console.log(error);
+    res.status(404).send({ message: "error in updating" });
+  }
+};
 
-const historybills=async(req,res)=>{
-try {
-    const history=await historyOfBill();
-    console.log(history,"history of edidted bills");
-    res.send({history});
-} catch (error) {
-    console.log(error,"error in getting edited history ")
-    res.status(404).send({message:"erroe occured in getting the history of updated bills"})
-}
-}
+//get  a single bill
+const getBillById = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const singlebill = await getbyid(id);
+    res.send(singlebill);
+  } catch (error) {
+    res.send("error");
+  }
+};
 
 //get all expenses
-router.get("/allbills",authMiddleware,getAllBills);
+router.get("/allbills", authMiddleware, getAllBillsOfUsers);
 //create expenses
-router.post("/createbills",authMiddleware,createBills);
+router.post("/createbills", authMiddleware, createNewBillOfUser);
 //delete expenses
-router.delete("/deletebill/:id",deletebill);
+router.delete("/deletebill/:id", deleteBillOfUser);
 //edit expenses
-router.put("/editbill/:id",editbill);
+router.put("/editbill/:id", editUserBill);
 //getby id
-router.get("/billbyid/:id",getById);
-//get history of edited bills;
-router.get("/history",historybills);
+router.get("/billbyid/:id", getBillById);
 
-
-module.exports=router;
+module.exports = router;

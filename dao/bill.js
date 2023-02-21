@@ -1,28 +1,36 @@
 const { Bills } =require( "../models/expenses.js");
-const { UpdatedBill } = require("../models/update.js");
 
-//all queries
-const allbills=async({userId,page,pageSize,search})=>{
-     let limit=Number(pageSize);
-     let skip=Number(limit)*Number((page)-1);
-    
- const total=await Bills.find({
-    title:search
- }).count();
- console.log("serachhhhhhhhhhhhhhhhhhhh",search)
- const bool=Math.ceil(total/limit);
-//  console.log("boool>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",bool);
+//all queries  
+const getAllBills=async({userId,Page,PageSize,search,startDate,endDate})=>{
+    let limit=Number(PageSize);
+    let skip=Number(PageSize)*Number((Page)-1);
+    const filters={
+        user_id:userId,
+        is_active:true
+    }
 
-console.log(">>>>>>>>>>>>>>> user Id: ", limit);
-const bills= await Bills.find({user_id: userId, is_active: true,title:search}).skip(skip).limit(limit);
-console.log(search);
-console.log(bills,"billssssssssssssssssssssssssssssssssssssssssssssss");
- return {bills,total,bool};
-}    
-const createbills=async(data)=>{
-    return await Bills.create(data);
+    if(search){
+        filters["title"] =  { $regex: search }
+    }
+
+    if(startDate&&endDate){
+        filters["expense_date"]={
+            $gt:startDate,
+            $lt:endDate
+        }
+    }
+
+const [data,count]=await Promise.all([
+   Bills.find(filters).skip(skip).limit(limit).lean(),
+   Bills.count(filters)
+])
+return {data,count};
 }
-const deletebills=async(id,body)=>{
+
+const createNewBill=async(data)=>{
+    return await Bills.create(data);
+} 
+const deleteBill=async(id,body)=>{
     return await Bills.updateOne(
         { id },
         {
@@ -32,24 +40,18 @@ const deletebills=async(id,body)=>{
         }
     );
 }
-const updatebills=async(id,body)=>{
-    return await Bills.findByIdAndUpdate(id,body);
+const updateBill=async(id,body)=>{
+    return await Bills.findByIdAndUpdate({id:_id,body});
 }
 const getbyid=async(id)=>{
     return await Bills.findById(id);
 }
-const updatedbilldata=async(body)=>{
-    return await UpdatedBill.create(body);
-}
-const historyOfBill=async()=>{
-    return await UpdatedBill.find();
-}
+
 module.exports={
-allbills,
-createbills,
-deletebills,
-updatebills,
-getbyid,
-updatedbilldata,
-historyOfBill
+getAllBills,
+createNewBill,
+deleteBill,
+updateBill,
+getbyid
+
 }

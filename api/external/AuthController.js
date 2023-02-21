@@ -28,8 +28,8 @@ const createUserForSignUp = async (req, res) => {
       !firstName ||
       !email ||
       !firstName ||
-      !password ||
-      !password
+      !password 
+     
     ) {
       throw new Error("Firstname,lastname,email,contactnumber are mandatory");
     }
@@ -63,7 +63,7 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
   
   try {
-    const existingUser = await User.find({ email });
+    const existingUser = await findUserForLogin(email);
     if (existingUser.length > 0) {
       bcrypt.compare(
         password.toString(),

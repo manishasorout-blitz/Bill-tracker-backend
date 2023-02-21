@@ -12,9 +12,9 @@ const createUser=async(body)=>{
    return await User.create(body);
 }
 
-const findUserByEmail=async(email)=>{
+const findUserByEmail=async({email,contact_number})=>{
   console.log(email,"line 7");
-  return await User.find({email});
+  return await User.find({$or:[{email},{contact_number}]});
 }
 
 const findUserForLogin=async(email)=>{

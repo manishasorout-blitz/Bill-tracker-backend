@@ -3,12 +3,11 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const {
-  createuser,
   findUserByEmail,
   findUserForLogin,
   createUser,
 } = require("../../dao/user.js");
-const { User } = require("../../models/usermodel.js");
+
 
 //create user
 const createUserForSignUp = async (req, res) => {
@@ -25,15 +24,14 @@ const createUserForSignUp = async (req, res) => {
     //validation
     if (
       !firstName ||
-      !firstName ||
+      !lastName ||
       !email ||
-      !firstName ||
-      !password 
-     
+      !password ||
+      !contactNumber     
     ) {
-      throw new Error("Firstname,lastname,email,contactnumber are mandatory");
+      throw new Error("Firstname,lastname,email,contactnumber and password  are mandatory");
     }
-    const exsistingUser = await findUserByEmail(email);
+    const exsistingUser = await findUserByEmail({email, contact_number: contactNumber});
     if (exsistingUser.length > 0) {
       throw new Error("user already exist");
     }

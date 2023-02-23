@@ -26,5 +26,4 @@ module.exports={
   createUser,
  findUserForLogin,
  findUserByEmail
-
 }
